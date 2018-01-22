@@ -99,3 +99,9 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+TfApp/Database
+TfApp/Logs
+TfApp/model
+TFApp/windows
+TFApp/__pycache__
