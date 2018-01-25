@@ -134,7 +134,7 @@ class train(object):
             self.saver.save(sess, self.folder.mainModelDir, global_step=step)
             
             
-    def __forward(self,predict,step):       
+    def __Forward(self,predict,step):       
         if step % self.__reportStep == 0:
             self.__DataFeed(stage='Validate')
             lossOps = self.__LossCal(predicts)
@@ -154,8 +154,8 @@ class train(object):
         '''
         __LearningRateDecay()        
         init = tf.global_variables_initializer()
-        model_vars = tf.trainable_variables()
-        slim.model_analyzer.analyze_vars(model_vars, print_info=True)
+        modelVars = tf.trainable_variables()
+        slim.model_analyzer.analyze_vars(modelVars, print_info=True)
         threads = tf.train.start_queue_runners(sess=self.__sess, coord=self.coord)
                                 
         try:
@@ -163,7 +163,7 @@ class train(object):
                 if self.coord.should_stop():
                     break              
                 self.__Backward(predicts,step)                 
-                self.__forward(predicts,step)
+                self.__Forward(predicts,step)
                                    
         except tf.errors.OutOfRangeError:
             print('Done training -- epoch limit reached')

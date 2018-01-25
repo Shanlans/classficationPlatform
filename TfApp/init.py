@@ -6,6 +6,7 @@ import os
 import inputs
 import scipy.ndimage
 import tensorflow as tf
+from tensorflow.python.client import device_lib
 
 class Init(object):
     """
@@ -59,6 +60,9 @@ class Init(object):
         self.sess             =   tf.Session()
         self.xs               =   None
         self.ys               =   None
+        
+        local_device_protos = device_lib.list_local_devices()
+        self.gpuList = [x.name for x in local_device_protos if x.device_type == 'GPU']
         
 
         
