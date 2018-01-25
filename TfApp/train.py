@@ -6,6 +6,8 @@ import tensorflow as tf
 
 import tensorflow.contrib.slim as slim
 
+import models
+
 import init
 import logsfilesfolders
 import evaluation
@@ -61,6 +63,8 @@ class train(object):
         with tf.name_scope('Inputs'):
             self.xs = tf.placeholder(tf.float32,imageInfo.insert(0,None),'Images')
             self.ys = tf.placeholder(tf.float32,[None,self.__inital.classNum],'Labels')
+        
+        self.models = models.models(self.xs,[3,3,1,1],[20,40,40,self.__inital.classNum])
               
         
     
@@ -152,6 +156,7 @@ class train(object):
            Return:
             
         '''
+        predicts = self.models.get_output()
         __LearningRateDecay()        
         init = tf.global_variables_initializer()
         modelVars = tf.trainable_variables()

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # created by Shanlan on 24/1/2018
 import tensorflow as tf
-import tensorflow.contrib.layers as init
+#import tensorflow.contrib.layers as init
 import logging
 import numpy as np
 
@@ -20,7 +20,7 @@ class Layers:
         self.input = x  # initialize input tensor
         self.count = {'conv': 0, 'deconv': 0, 'fc': 0, 'flat': 0, 'mp': 0, 'up': 0, 'ap': 0, 'rn': 0}
 
-    def Conv2D(self, filterSize, outputChannels, stride=1, padding='SAME', bn=True, activationFn=tf.nn.relu, bValue=0.0, sValue=1.0, trainable=True):
+    def Conv2D(self, filterSize, outputChannel, stride=1, padding='SAME', bn=True, activationFn=tf.nn.relu, bValue=0.0, sValue=1.0, trainable=True):
         """
         2D Convolutional Layer.
         :param filterSize: int. assumes square filter
@@ -39,7 +39,7 @@ class Layers:
             if filterSize == 0:  # outputs a 1x1 feature map; used for FCN
                 filterSize = self.input.get_shape()[2]
                 padding = 'VALID'
-            outputShape = [filterSize, filterSize, inputChannels, outputChannels]
+            outputShape = [filterSize, filterSize, inputChannels, outputChannel]
             w = self.WeightVariable(name='weights', shape=outputShape, trainable=trainable)
             self.input = tf.nn.conv2d(self.input, w, strides=[1, stride, stride, 1], padding=padding)
             tf.summart.histogram('Conv',self.input)
@@ -47,10 +47,10 @@ class Layers:
             if bn is True:  # batch normalization
                 self.input = self.BatchNorm(self.input)
             if bValue is not None:  # bias value
-                b = self.ConstVariable(name='bias', shape=[outputChannels], value=bValue, trainable=trainable)
+                b = self.ConstVariable(name='bias', shape=[outputChannel], value=bValue, trainable=trainable)
                 self.input = tf.add(self.input, b)
             if sValue is not None:  # scale value
-                s = self.ConstVariable(name='scale', shape=[outputChannels], value=sValue, trainable=trainable)
+                s = self.ConstVariable(name='scale', shape=[outputChannel], value=sValue, trainable=trainable)
                 self.input = tf.multiply(self.input, s)
             if activationFn is not None:  # activation function
                 self.input = activationFn(self.input)
@@ -115,6 +115,8 @@ class Layers:
                 padding = 'SAME'
             # Average Pool Function
             self.input = tf.nn.avg_pool(self.input, ksize=[1, k1, k2, 1], strides=[1, s1, s2, 1], padding=padding)
+            if globe is True:
+                self.input = tf.reshape(self.input,[-1,self.input.get_shape()[3]])
         self.PrintLog(scope + ' output: ' + str(self.input.get_shape()))
 
     def Deconv2D(self, filterSize, outputChannels, stride=1, padding='SAME', activationFn=tf.nn.relu, bValue=0.0, sValue=1.0, bn=True, trainable=True):
@@ -247,7 +249,13 @@ class Layers:
         tf.summary.histogram('beta',beta)
         tf.summary.histogram('gamma',gamma)
         return normed
-
+    
+    def get_output(self):
+        """
+        :return tf.Tensor, output of network
+        """
+        return self.input
+    
     @staticmethod
     def PrintLog(message):
         """ Writes a message to terminal screen and logging file, if applicable"""
@@ -273,5 +281,6 @@ class Layers:
         :return: tf variable
         """
         return tf.get_variable(name, shape, initializer=tf.constant_initializer(value), trainable=trainable)
+    
     
     

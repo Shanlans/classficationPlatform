@@ -2,6 +2,7 @@
 # Created By Shanlan on 22/1/2018
 
 import tensorflow as tf
+import numpy as np
 import baseLayer
 
 
@@ -11,11 +12,11 @@ class models(object):
                  x,
                  filterSizes,
                  outputChannels,
-                 pooling,
-                 padding='SAME',
-                 bn=False,
-                 activateFn=tf.nn.relu,
-                 bValue = 0.0):
+                 padding,
+                 bn,
+                 activationFn,
+                 bValue,
+                 trainable):
         '''
         Shortcut for creating a 2D Convolutional Neural Network in one line
         
@@ -28,62 +29,79 @@ class models(object):
         :param activationFn: tf.nn function
         :param bValue: float
         :param sValue: float
+        :param trainable: train or validation
         '''  
         
         
         self.x = x
-        self.filterSize = filterSize
-        self.outputChannel = outputChannel
-        self.pooling = pooling
-        self.padding = padding
-        self.bn = bn
-        self.activateFn = activateFn
-        self.bValue = bValue
+        self.__filterSizes = filterSizes
+        self.__outputChannels = outputChannels
+        self.__padding = padding
+        self.__bn = bn
+        self.__activationFn = activationFn
+        self.__bValue = bValue
+        self.__trainable = trainable
         
-        self.depth = len(filterSize)
+        self.depth = len(filterSizes)
         
         self.network = self._Network(x)
     
     
-    def _Network(self,
-                x):
+    def _Network(self,x):
         layers = baseLayer.Layers(x)
+        filterSizes = self.__filterSizes
+        outputChannels = self.__outputChannels
+        padding = self.__padding
+        bn = self.__bn
+        activationFn = self.__activationFn
+        bValue = self.__bValue
+        trainable = self.__trainable
         
-        def convnet(self, filterSize, outputChannels, stride=None, padding=None, activationFn=None, bValue=None, sValue=None, bn=None, trainable=True):
               
         # Number of layers to stack
-        depth = len(filter_size)
-        
+        depth = self.depth
+        stride = None
+        sValue = None
         # Default arguments where None was passed in
         if stride is None:
             stride = np.ones(depth)
         if padding is None:
             padding = ['SAME'] * depth
-        if activation_fn is None:
-            activation_fn = [tf.nn.relu] * depth
-        if b_value is None: 
-            b_value = np.zeros(depth)
-        if s_value is None:
-            s_value = np.ones(depth)
+        if activationFn is None:
+            activationFn = [tf.nn.relu] * depth
+        if bValue is None: 
+            bValue = np.zeros(depth)
+        if sValue is None:
+            sValue = np.ones(depth)
         if bn is None:
             bn = [True] * depth 
             
         # Make sure that number of layers is consistent
-        assert len(output_channels) == depth
+        assert len(outputChannels) == depth
         assert len(stride) == depth
         assert len(padding) == depth
-        assert len(activation_fn) == depth
-        assert len(b_value) == depth
-        assert len(s_value) == depth
+        assert len(activationFn) == depth
+        assert len(bValue) == depth
+        assert len(sValue) == depth
         assert len(bn) == depth
         
         # Stack convolutional layers
         for l in range(depth):
-            self.conv2d(filter_size=filter_size[l],
-                        output_channels=output_channels[l],
-                        stride=stride[l],
-                        padding=padding[l],
-                        activation_fn=activation_fn[l],
-                        b_value=b_value[l], 
-                        s_value=s_value[l], 
-                        bn=bn[l], trainable=trainable)
+            layers.conv2d(filterSize=filterSizes[l],
+                          outputChannel=outputChannels[l],
+                          stride=stride[l],
+                          padding=padding[l],
+                          activationFn=activationFn[l],
+                          bValue=bValue[l], 
+                          sValue=sValue[l], 
+                          bn=bn[l], 
+                          trainable=trainable)
+            if l == depth-1:
+                layers.AvgPool(globe=True)
+            else:
+                layers.MaxPool()
+                
+    def get_output(self):
+        
+        predicts = tf.nn.softmax(self.network.get_output())
+        return predicts
