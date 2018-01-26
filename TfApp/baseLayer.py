@@ -42,7 +42,7 @@ class Layers:
             outputShape = [filterSize, filterSize, inputChannels, outputChannel]
             w = self.WeightVariable(name='weights', shape=outputShape, trainable=trainable)
             self.input = tf.nn.conv2d(self.input, w, strides=[1, stride, stride, 1], padding=padding)
-            tf.summart.histogram('Conv',self.input)
+            tf.summary.histogram('Conv',self.input)
 
             if bn is True:  # batch normalization
                 self.input = self.BatchNorm(self.input)
@@ -225,9 +225,9 @@ class Layers:
                 self.input = tf.nn.dropout(self.input, keep_prob=keepProb)
         self.PrintLog(scope + ' output: ' + str(self.input.get_shape()))        
         
-    def BatchNorm(self,inputs,trainable):
-        beta = self.const_variable(name='beta', shape=[inputs.get_shape()[-1]], value=0.0, trainable=trainable)
-        gamma = self.const_variable(name='gamma', shape=[inputs.get_shape()[-1]], value=0.0, trainable=trainable)
+    def BatchNorm(self,inputs,trainable=True):
+        beta = self.ConstVariable(name='beta', shape=[inputs.get_shape()[-1]], value=0.0, trainable=trainable)
+        gamma = self.ConstVariable(name='gamma', shape=[inputs.get_shape()[-1]], value=0.0, trainable=trainable)
         lens = len(inputs.get_shape())-1
         axises = np.arange(len(inputs.get_shape()) - 1)
         if lens == 1:
@@ -243,7 +243,7 @@ class Layers:
                 return tf.identity(batchMean), tf.identity(batchVar)
         # 通过train_phase(一个布尔表达式，true选择执行接下来第一个，false选择执行后面一个)
         # 这里可以选择执行 正常均值，也可以选择用ExponentialMovingAverage
-        mean, var = tf.cond(trainable, MeanVarWithUpdate, lambda: (ema.average(batchMean), ema.average(batchVar)))
+        mean, var = tf.cond(tf.cast(trainable,tf.bool), MeanVarWithUpdate, lambda: (ema.average(batchMean), ema.average(batchVar)))
         # Beta = 0 ,Gamma = 1,offset = 0.001
         normed = tf.nn.batch_normalization(inputs, mean, var, beta, gamma, 1e-3,name='bn')
         tf.summary.histogram('beta',beta)

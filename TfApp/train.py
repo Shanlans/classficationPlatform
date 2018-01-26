@@ -3,18 +3,18 @@
 
 
 import tensorflow as tf
-
+import numpy as np
 import tensorflow.contrib.slim as slim
 
 import models
 
-import init
+#import init
 import logsfilesfolders
 import evaluation
 
 
 
-class train(object):
+class Train(object):
     
     def __init__(self,
                  initial,
@@ -29,42 +29,44 @@ class train(object):
                  feedDict = {},
                  reportStep = 50,
                  checkPointStep = 2000,
-                 fineTune = False,
-                 sess 
+                 fineTune = False
                  ):
         
-        self.__inital = initial
+        self.__initial = initial
         self.__trainStep = iteration
-        self.__optimizerMethod = optimizer
+        self.__optimizerMethod = optimizerMethod
         self.__learningRate = learningRate
         self.__learningRateDecay = learningRateDecay
         self.__learningRateDecayMethod = learningRateDecayMethod
         self.__learningRateDecayRate = learningRateDecayRate
         self.__regularization = regularization
-        self.__regularizationMethod = regularizationMethod
+#        self.__regularizationMethod = regularizationMethod
         self.__regularizationWeight = regularizationWeight
         self.__reportStep = reportStep
         self.__checkPointStep = checkPointStep
         self.__fineTune = fineTune
-        self.__sess = sess         
+        self.__sess = self.__initial.sess         
         self.coord = tf.train.Coordinator()
-        self.saver = tf.train.Saver()
+        self.saver = None
         self.__feedDict = feedDict  
-        self.__feedDict.updata(xs=None)
-        self.__feedDict.updata(ys=None)        
+
+                
         self.__initial.LoadInputData(stage='Train')
         self.__initial.LoadInputData(stage='Validate')
 #        self.__initial.LoadInputData(stage='Test')
-        self.__addForDecay
+        self.__addForDecay = None
 
-        imageInfo = [self.__initial.imageInfo['imageHeight'],self.__initial.imageInfo['imageWidth'],self.__initial.imageInfo['imageChannels']]  
+        inputInfo = [None,self.__initial.imageInfo['imageHeight'],self.__initial.imageInfo['imageWidth'],self.__initial.imageInfo['imageChannels']] 
         self.folder = logsfilesfolders.LogsFilesFolders('Train','V1',self.__sess)
-        self.tb = self.folder.TbInital()
-        with tf.name_scope('Inputs'):
-            self.xs = tf.placeholder(tf.float32,imageInfo.insert(0,None),'Images')
-            self.ys = tf.placeholder(tf.float32,[None,self.__inital.classNum],'Labels')
         
-        self.models = models.models(self.xs,[3,3,1,1],[20,40,40,self.__inital.classNum])
+        with tf.name_scope('Inputs'):
+            self.xs = tf.placeholder(tf.float32,inputInfo,'Images')
+            self.ys = tf.placeholder(tf.float32,[None,self.__initial.classNum],'Labels')
+            
+        self.__feedDict[self.xs] = None
+        self.__feedDict[self.ys] = None
+        
+        self.models = models.models(self.xs,[3,3,1,1],[20,40,40,self.__initial.classNum],trainable=True)
               
         
     
@@ -109,19 +111,19 @@ class train(object):
         return trainOps 
     
     def __DataFeed(self,stage='Train'):        
-        datas,lables = self.__sess.run([self.__inital.PrepareBatch(stage=stage)])
-        self.__feedDict['xs'] = datas
-        self.__feedDict['ys'] = lables 
+        datas,lables = self.__sess.run([self.__initial.PrepareBatch(stage=stage)])
+        self.__feedDict[self.xs] = datas
+        self.__feedDict[self.ys] = lables 
     
         if stage is 'Train':
-            if 'dropout' in self.__feedDict.keys():
-                self.__feedDict['dropout'] = self.__inital.dropout
-            if 'trainPhase' in self.__feedDict.keys():
-                self.__feedDict['trainPhase'] = True                
+            if dropout in self.__feedDict.keys():
+                self.__feedDict[dropout] = self.__initial.dropout
+            if trainphase in self.__feedDict.keys():
+                self.__feedDict[trainPhase] = True                
         else:
-            if 'dropout' in self.__feedDict.keys():
-                self.__feedDict['dropout'] = 1
-                self.__feedDict['trainPhase'] = False
+            if dropout in self.__feedDict.keys():
+                self.__feedDict[dropout] = 1
+                self.__feedDict[trainphase] = False
                 
     def __Backward(self,predicts,step):
         self.__DataFeed(stage='Train')
@@ -132,22 +134,22 @@ class train(object):
         if step % self.__reportStep == 0:            
             print('Step %d, learning rate = %s'%(step,self.__sess.run(self.__learningRate)))
             print('Step %d, train loss = %.4f, train accuracy = %.4f%%' %(step, loss, acc*100.0))
-            summary = sess.run(self.tb[0],feed_dict=self.__feedDict)
+            summary = self.__sess.run(self.tb[0],feed_dict=self.__feedDict)
             self.tb[1].add_summary(summary, step)
         if step % self.__checkPointStep == 0:     
-            self.saver.save(sess, self.folder.mainModelDir, global_step=step)
+            self.saver.save(self.__sess, self.folder.mainModelDir, global_step=step)
             
             
     def __Forward(self,predict,step):       
         if step % self.__reportStep == 0:
             self.__DataFeed(stage='Validate')
-            lossOps = self.__LossCal(predicts)
-            accOps = evaluation.AccuracyCal(self.ys,predicts)
-            cMatOps= evaluation.ConfusionMatrix(self.ys,predicts)
+            lossOps = self.__LossCal(predict)
+            accOps = evaluation.AccuracyCal(self.ys,predict)
+            cMatOps= evaluation.ConfusionMatrix(self.ys,predict)
             loss,acc,cMat = self.__sess.run([lossOps,accOps,cMatOps],feed_dict=self.__feedDict)            
             print('Step %d, validate loss = %.4f, validate accuracy = %.4f%%' %(step, loss, acc*100.0))
             print('The Confusion matrix = \n%s'%(cMat)) 
-            summary = sess.run(self.tb[0],feed_dict=self.__feedDict)
+            summary = self.__sess.run(self.tb[0],feed_dict=self.__feedDict)
             self.tb[2].add_summary(summary, step)
 
     def TrainProcess(self):       
@@ -156,9 +158,11 @@ class train(object):
            Return:
             
         '''
-        predicts = self.models.get_output()
-        __LearningRateDecay()        
-        init = tf.global_variables_initializer()
+        predicts = self.models.get_output()      
+        self.__LearningRateDecay()   
+        self.tb = self.folder.TbInital()
+        variableInit = tf.global_variables_initializer()       
+        self.saver = tf.train.Saver() #save after varaible initial
         modelVars = tf.trainable_variables()
         slim.model_analyzer.analyze_vars(modelVars, print_info=True)
         threads = tf.train.start_queue_runners(sess=self.__sess, coord=self.coord)
@@ -173,9 +177,9 @@ class train(object):
         except tf.errors.OutOfRangeError:
             print('Done training -- epoch limit reached')
         finally:
-            coord.request_stop()
+            self.coord.request_stop()
         
-        coord.join(threads)    
+        self.coord.join(threads)    
                 
                 
             

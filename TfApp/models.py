@@ -12,11 +12,12 @@ class models(object):
                  x,
                  filterSizes,
                  outputChannels,
-                 padding,
-                 bn,
-                 activationFn,
-                 bValue,
-                 trainable):
+                 trainable,
+                 padding=None,
+                 bn=None,
+                 activationFn=None,
+                 bValue=None
+                 ):
         '''
         Shortcut for creating a 2D Convolutional Neural Network in one line
         
@@ -34,6 +35,7 @@ class models(object):
         
         
         self.x = x
+        print(x.get_shape())
         self.__filterSizes = filterSizes
         self.__outputChannels = outputChannels
         self.__padding = padding
@@ -48,7 +50,7 @@ class models(object):
     
     
     def _Network(self,x):
-        layers = baseLayer.Layers(x)
+        self.layers = baseLayer.Layers(x)
         filterSizes = self.__filterSizes
         outputChannels = self.__outputChannels
         padding = self.__padding
@@ -87,7 +89,7 @@ class models(object):
         
         # Stack convolutional layers
         for l in range(depth):
-            layers.conv2d(filterSize=filterSizes[l],
+            self.layers.Conv2D(filterSize=filterSizes[l],
                           outputChannel=outputChannels[l],
                           stride=stride[l],
                           padding=padding[l],
@@ -97,11 +99,11 @@ class models(object):
                           bn=bn[l], 
                           trainable=trainable)
             if l == depth-1:
-                layers.AvgPool(globe=True)
+                self.layers.AvgPool(globe=True)
             else:
-                layers.MaxPool()
+                self.layers.MaxPool()
                 
     def get_output(self):
         
-        predicts = tf.nn.softmax(self.network.get_output())
+        predicts = tf.nn.softmax(self.layers.get_output())
         return predicts

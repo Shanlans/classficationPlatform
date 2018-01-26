@@ -11,7 +11,8 @@ import sys
 import tensorflow as tf 
 
 import init
-import logsfilesfolders
+import train
+
 
 
 
@@ -28,8 +29,9 @@ def main(_):
                       classes = ['Dianzi','Zangwu','Others'] 
                       )
 
-  initial.LoadInputData(stage='Test')
-  data,image= initial.PrepareBatch(stage='Train')
+  trainInstance = train.Train(initial,200,0.01,checkPointStep=10)
+  trainInstance.TrainProcess()
+  initial.ClossSession()
   
 #  print(folder.modelDict['2018-01-10-15-39'])
 #  folder.generatePb('./model/V1/2018-01-10-15-39')
