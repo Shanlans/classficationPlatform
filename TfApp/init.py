@@ -142,7 +142,7 @@ class Init(object):
             batchSize = self.trainBatchSize
             data = self.__inputData['trainDataSet']['image']
             label = self.__inputData['trainDataSet']['label']
-            numberThread = 2000 
+            numberThread = 100
             isShuffle = True
             print('\nTraining batch %s ready.\n'%batchSize)
         elif stage is 'Validate':
@@ -163,6 +163,7 @@ class Init(object):
             isShuffle = False
             print('\Test batch %s ready.\n'%batchSize)
         dataBatch,labelBatch=inp.GetBatch(data,label,classNum,imageInfo[:],batchSize,isShuffle=isShuffle,numberThread=numberThread)
+        
         return dataBatch,labelBatch
         
     def ClossSession(self):

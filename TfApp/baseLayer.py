@@ -35,6 +35,7 @@ class Layers:
         scope = 'conv_' + str(self.count['conv'])
         with tf.variable_scope(scope):
             # Conv function
+            print(self.input.get_shape())
             inputChannels = self.input.get_shape()[3]
             if filterSize == 0:  # outputs a 1x1 feature map; used for FCN
                 filterSize = self.input.get_shape()[2]

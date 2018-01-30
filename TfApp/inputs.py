@@ -52,7 +52,7 @@ class Input_Data(object):
         return imageList, labelList         
 
 
-    def GetBatch(self,image,label,classNum,imageInfo,batchSize,isShuffle=True,numberThread=2000,capacity=5000):
+    def GetBatch(self,image,label,classNum,imageInfo,batchSize,isShuffle=True,numberThread=1000,capacity=5000):
         '''
         Args:
             image: list type
@@ -70,19 +70,21 @@ class Input_Data(object):
         imageHight,imageWidth,imageChannels = imageInfo
         label=tf.one_hot(label,classNum,1,0,-1,dtype=tf.int32)
         image = tf.cast(image,tf.string)
-        input_queue = tf.train.slice_input_producer([image,label],shuffle=isShuffle)            
+        input_queue = tf.train.slice_input_producer([image,label],shuffle=isShuffle)
+       
         label =input_queue[1]
         image_contents = tf.read_file(input_queue[0])
         image = tf.image.decode_png(image_contents,channels=imageChannels)
         image = tf.image.resize_images(image,[imageHight,imageWidth],method=3)        
-        image = tf.image.per_image_standardization(image)             
+        image = tf.image.per_image_standardization(image)
         image_batch, label_batch = tf.train.batch([image, label],
                                                   batch_size= batchSize,
                                                   num_threads= numberThread, 
                                                   capacity = capacity)
-            
+              
         label_batch = tf.reshape(label_batch, [batchSize,classNum])
-        image_batch = tf.cast(image_batch, tf.float32)        
+        
+        image_batch = tf.cast(image_batch, tf.float32)
         return image_batch, label_batch
         
         

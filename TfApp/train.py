@@ -63,8 +63,8 @@ class Train(object):
             self.xs = tf.placeholder(tf.float32,inputInfo,'Images')
             self.ys = tf.placeholder(tf.float32,[None,self.__initial.classNum],'Labels')
             
-        self.__feedDict[self.xs] = None
-        self.__feedDict[self.ys] = None
+#        self.__feedDict[self.xs]
+#        self.__feedDict[self.ys]
         
         self.models = models.models(self.xs,[3,3,1,1],[20,40,40,self.__initial.classNum],trainable=True)
               
@@ -110,10 +110,15 @@ class Train(object):
                         trainOps = tf.train.AdamOptimizer(self.__learningRate).minimize(loss)
         return trainOps 
     
-    def __DataFeed(self,stage='Train'):        
-        datas,lables = self.__sess.run([self.__initial.PrepareBatch(stage=stage)])
+    def __DataFeed(self,stage='Train'): 
+        dataOps,lableOps=self.__initial.PrepareBatch(stage='Train')
+        self.threads = tf.train.start_queue_runners(sess=self.__sess, coord=self.coord)
+        datas,lables = self.__sess.run([dataOps,lableOps])
+        print("!!!!!") 
+        print(self.__feedDict)
         self.__feedDict[self.xs] = datas
         self.__feedDict[self.ys] = lables 
+        
     
         if stage is 'Train':
             if dropout in self.__feedDict.keys():
@@ -163,10 +168,10 @@ class Train(object):
         self.tb = self.folder.TbInital()
         variableInit = tf.global_variables_initializer()       
         self.saver = tf.train.Saver() #save after varaible initial
+        self.__sess.run(variableInit)
+        
         modelVars = tf.trainable_variables()
-        slim.model_analyzer.analyze_vars(modelVars, print_info=True)
-        threads = tf.train.start_queue_runners(sess=self.__sess, coord=self.coord)
-                                
+        slim.model_analyzer.analyze_vars(modelVars, print_info=True)            
         try:
             for step in np.arange(self.__trainStep):
                 if self.coord.should_stop():
@@ -178,8 +183,9 @@ class Train(object):
             print('Done training -- epoch limit reached')
         finally:
             self.coord.request_stop()
-        
-        self.coord.join(threads)    
+            
+        self.coord.join(self.threads) 
+           
                 
                 
             
