@@ -149,9 +149,9 @@ class Init(object):
             numberThread = 1
             isShuffle = False
             if len(label)<self.__maxValidateBatchSize:
-                batchSize = len(label)
+                batchSize = 20#len(label)
             else:
-                batchSize = self.__maxValidateBatchSize               
+                batchSize = 20#self.__maxValidateBatchSize               
             print('\nValidate batch %s ready.\n'%batchSize)
         elif stage is 'Test':
             data = self.__inputData['trainDataSet']['image']

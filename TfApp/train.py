@@ -67,7 +67,7 @@ class Train(object):
     
     def __LossCal(self,predicts):
         regularization = self.__regularization
-        regularizationWeight = self.__regularizationWeight
+        regularizationWeight = self.__regularizationWeight 
         
         with tf.variable_scope('Loss'):
             loss = tf.reduce_mean(tf.losses.softmax_cross_entropy(onehot_labels=self.ys,logits=predicts,weights=1))
@@ -137,10 +137,10 @@ class Train(object):
         if step % self.__reportStep == 0:
             self.__DataFeed(self.__validateDataops,self.__validateLabelOps,stage='Validate')
             accOps = evaluation.AccuracyCal(self.ys,self.__predicts)
-            cMatOps= evaluation.ConfusionMatrix(self.ys,self.__predicts)
-            loss,acc,cMat = self.__sess.run([self.__lossOps,accOps,cMatOps],feed_dict=self.__feedDict)            
+#            cMatOps= evaluation.ConfusionMatrix(self.ys,self.__predicts)
+            loss,acc = self.__sess.run([self.__lossOps,accOps],feed_dict=self.__feedDict)            
             print('Step %d, validate loss = %.4f, validate accuracy = %.4f%%' %(step, loss, acc*100.0))
-            print('The Confusion matrix = \n%s'%(cMat)) 
+#            print('The Confusion matrix = \n%s'%(cMat)) 
             summary = self.__sess.run(self.tb[0],feed_dict=self.__feedDict)
             self.tb[2].add_summary(summary, step)
             
