@@ -52,7 +52,7 @@ class Input_Data(object):
         return imageList, labelList         
 
 
-    def GetBatch(self,image,label,classNum,imageInfo,batchSize,isShuffle=True,numberThread=1000,capacity=5000):
+    def GetBatch(self,image,label,classNum,imageInfo,batchSize,isShuffle=True,numberThread=2000,capacity=5000):
         '''
         Args:
             image: list type

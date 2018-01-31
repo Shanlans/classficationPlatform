@@ -45,7 +45,7 @@ if __name__ == '__main__':
                       help='Number of steps to run trainer.')
   parser.add_argument('--learning_rate', type=float, default=0.001,
                       help='Initial learning rate')
-  parser.add_argument('--mini_batch_size', type=int, default=1,
+  parser.add_argument('--mini_batch_size', type=int, default=64,
                       help='Training batch size')
   parser.add_argument('--dropout', type=float, default=0.9,
                       help='Keep probability for training dropout.')

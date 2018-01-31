@@ -135,20 +135,18 @@ class Init(object):
     def PrepareBatch(self,isShuffle=True,stage='Train'):
         inp = inputs.Input_Data()
         classNum = self.classNum
-        imageInfo = [self.imageInfo['imageHeight'],self.imageInfo['imageWidth'],self.imageInfo['imageChannels']]        
-        print('    Image info: %s'%imageInfo)
-               
+        imageInfo = [self.imageInfo['imageHeight'],self.imageInfo['imageWidth'],self.imageInfo['imageChannels']]                       
         if stage is 'Train':
             batchSize = self.trainBatchSize
             data = self.__inputData['trainDataSet']['image']
             label = self.__inputData['trainDataSet']['label']
-            numberThread = 100
+            numberThread = 2000
             isShuffle = True
             print('\nTraining batch %s ready.\n'%batchSize)
         elif stage is 'Validate':
             data = self.__inputData['valiDataSet']['image']
             label = self.__inputData['valiDataSet']['label']
-            numberThread = 1 
+            numberThread = 1
             isShuffle = False
             if len(label)<self.__maxValidateBatchSize:
                 batchSize = len(label)

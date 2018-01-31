@@ -46,7 +46,7 @@ class Layers:
             tf.summary.histogram('Conv',self.input)
 
             if bn is True:  # batch normalization
-                self.input = self.BatchNorm(self.input)
+                self.input = self.BatchNorm(self.input,trainable)
             if bValue is not None:  # bias value
                 b = self.ConstVariable(name='bias', shape=[outputChannel], value=bValue, trainable=trainable)
                 self.input = tf.add(self.input, b)
