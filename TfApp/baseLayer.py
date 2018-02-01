@@ -35,7 +35,6 @@ class Layers:
         scope = 'conv_' + str(self.count['conv'])
         with tf.variable_scope(scope):
             # Conv function
-            print(self.input.get_shape())
             inputChannels = self.input.get_shape()[3]
             if filterSize == 0:  # outputs a 1x1 feature map; used for FCN
                 filterSize = self.input.get_shape()[2]
@@ -228,7 +227,7 @@ class Layers:
         
     def BatchNorm(self,inputs,trainable=True):
         beta = self.ConstVariable(name='beta', shape=[inputs.get_shape()[-1]], value=0.0, trainable=trainable)
-        gamma = self.ConstVariable(name='gamma', shape=[inputs.get_shape()[-1]], value=0.0, trainable=trainable)
+        gamma = self.ConstVariable(name='gamma', shape=[inputs.get_shape()[-1]], value=1.0, trainable=trainable)
         lens = len(inputs.get_shape())-1
         axises = np.arange(len(inputs.get_shape()) - 1)
         if lens == 1:
@@ -247,8 +246,8 @@ class Layers:
         mean, var = tf.cond(tf.cast(trainable,tf.bool), MeanVarWithUpdate, lambda: (ema.average(batchMean), ema.average(batchVar)))
         # Beta = 0 ,Gamma = 1,offset = 0.001
         normed = tf.nn.batch_normalization(inputs, mean, var, beta, gamma, 1e-3,name='bn')
-        tf.summary.histogram('beta',beta)
-        tf.summary.histogram('gamma',gamma)
+        tf.summary.histogram('Beta',beta)
+        tf.summary.histogram('Gamma',gamma)
         return normed
     
     def get_output(self):

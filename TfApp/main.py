@@ -29,7 +29,7 @@ def main(_):
                       classes = ['Dianzi','Zangwu','Others'] 
                       )
 
-  trainInstance = train.Train(initial,200,0.01,checkPointStep=10)
+  trainInstance = train.Train(initial,200,0.0001,checkPointStep=10)
   trainInstance.TrainProcess()
   initial.ClossSession()
   

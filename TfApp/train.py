@@ -57,6 +57,8 @@ class Train(object):
         with tf.name_scope('Inputs'):
             self.xs = tf.placeholder(tf.float32,inputInfo,'Images')
             self.ys = tf.placeholder(tf.float32,[None,self.__initial.classNum],'Labels')
+            tf.summary.histogram("Image",self.xs)
+            tf.summary.histogram("Label",self.ys)
         self.dropout = tf.placeholder(tf.float32,name='Dropout')
         self.trainphase = tf.placeholder(tf.bool,name='Trainphase')
                     
@@ -65,26 +67,33 @@ class Train(object):
               
         
     
-    def __LossCal(self,predicts):
+    def __LossCal(self):
         regularization = self.__regularization
         regularizationWeight = self.__regularizationWeight 
         
         with tf.variable_scope('Loss'):
-            loss = tf.reduce_mean(tf.losses.softmax_cross_entropy(onehot_labels=self.ys,logits=predicts,weights=1))
+            self.__lossOps = tf.reduce_mean(tf.losses.softmax_cross_entropy(onehot_labels=self.ys,logits=self.__predicts,weights=1))
             regularizationVariable = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
         
             if regularization is True:           
-                loss += tf.multiply(regularizationWeight,sum(regularizationVariable))  
+                self.__lossOps += tf.multiply(regularizationWeight,sum(regularizationVariable))  
             else:
                 regularizationVariable = None
-            tf.summary.scalar('CrossEntropy',loss)
-        return loss
-        
+            tf.summary.scalar('CrossEntropy',self.__lossOps)
+    
+    def __AccCal(self):
+        with tf.variable_scope('Acc'):
+            self.__accOps = evaluation.AccuracyCal(self.ys,self.__predicts)
+            tf.summary.scalar('accuracy', self.__accOps)
+    
+    def __ConfusionMatrix(self):
+        with tf.variable_scope('ConfusionMatrix'):
+            self.__cMatOps= evaluation.ConfusionMatrix(self.ys,self.__predicts,self.__initial.classNum)
+    
     def __LearningRateDecay(self):  
         if self.__learningRateDecay:
             with tf.variable_scope('LRDecay'):
                 initialStep = tf.get_variable('DecayStep',dtype=tf.int32,initializer=tf.constant(0),trainable=False)     
-#                initialStep = tf.Variable(0, trainable=False)
                 self.__learningRate = tf.train.exponential_decay(self.__learningRate,
                                                                  global_step=initialStep,
                                                                  decay_steps=500,
@@ -94,7 +103,6 @@ class Train(object):
             
         
     def __Optimizer(self): 
-        self.__lossOps = self.__LossCal(self.__predicts)
         if self.__learningRateDecay:
             with tf.control_dependencies([self.__addForDecay]):      
                 if self.__optimizerMethod is 'Adam':
@@ -102,8 +110,8 @@ class Train(object):
                         self.__trainOps = tf.train.AdamOptimizer(self.__learningRate).minimize(self.__lossOps)
         else:
             if self.__optimizerMethod is 'Adam':
-                    with tf.variable_scope('Adam'):
-                        self.__trainOps = tf.train.AdamOptimizer(self.__learningRate).minimize(self.__lossOps)
+                with tf.variable_scope('Adam'):
+                    self.__trainOps = tf.train.AdamOptimizer(self.__learningRate).minimize(self.__lossOps)
     
 
         
@@ -111,7 +119,6 @@ class Train(object):
         datas,lables = self.__sess.run([dataOps,labelOps])      
         self.__feedDict[self.xs] = datas
         self.__feedDict[self.ys] = lables 
-        
         if stage == 'Train':
             self.__feedDict[self.dropout] = 0.5
             self.__feedDict[self.trainphase] = True
@@ -121,37 +128,38 @@ class Train(object):
     
             
     def __Backward(self,step):
-        self.__DataFeed(self.__trainDataOps,self.__trainLabelOps,stage='Train')
-        accOps = evaluation.AccuracyCal(self.ys,self.__predicts)        
-        _,loss,acc = self.__sess.run([self.__trainOps,self.__lossOps,accOps],feed_dict=self.__feedDict)
+        self.__DataFeed(self.__trainDataOps,self.__trainLabelOps,stage='Train')                    
+        _,loss,acc,p = self.__sess.run([self.__trainOps,self.__lossOps,self.__accOps,self.__predicts],feed_dict=self.__feedDict)
         if step % self.__reportStep == 0:            
             print('Step %d, learning rate = %s'%(step,self.__learningRate))
             print('Step %d, train loss = %.4f, train accuracy = %.4f%%' %(step, loss, acc*100.0))
             summary = self.__sess.run(self.tb[0],feed_dict=self.__feedDict)
             self.tb[1].add_summary(summary, step)
         if step % self.__checkPointStep == 0:
-            self.__saver.save(self.__sess,self.folder.mainModelDir+'\\', global_step=step)
+            self.__saver.save(self.__sess,self.folder.mainModelDir+'\\model', global_step=step)
             
             
     def __Forward(self,step):       
         if step % self.__reportStep == 0:
             self.__DataFeed(self.__validateDataops,self.__validateLabelOps,stage='Validate')
-            accOps = evaluation.AccuracyCal(self.ys,self.__predicts)
-#            cMatOps= evaluation.ConfusionMatrix(self.ys,self.__predicts)
-            loss,acc = self.__sess.run([self.__lossOps,accOps],feed_dict=self.__feedDict)            
+            loss,acc,cMat = self.__sess.run([self.__lossOps,self.__accOps,self.__cMatOps],feed_dict=self.__feedDict)            
             print('Step %d, validate loss = %.4f, validate accuracy = %.4f%%' %(step, loss, acc*100.0))
-#            print('The Confusion matrix = \n%s'%(cMat)) 
+            print('The Confusion matrix = \n%s'%(cMat)) 
             summary = self.__sess.run(self.tb[0],feed_dict=self.__feedDict)
             self.tb[2].add_summary(summary, step)
             
 
      
     def __BatchPrepare(self):
-        self.__trainDataOps,self.__trainLabelOps=self.__initial.PrepareBatch(stage='Train')
-        self.__validateDataops,self.__validateLabelOps = self.__initial.PrepareBatch(stage='Validate') 
+        with tf.variable_scope('BatchGen'):
+            self.__trainDataOps,self.__trainLabelOps=self.__initial.PrepareBatch(stage='Train')
+            self.__validateDataops,self.__validateLabelOps = self.__initial.PrepareBatch(stage='Validate') 
         
     def __SetUpGraphic(self):
         self.__predicts = self.models.get_output()
+        self.__LossCal()
+        self.__AccCal()
+        self.__ConfusionMatrix()
         self.__Optimizer()
         self.__LearningRateDecay()
         self.__saver = tf.train.Saver()
