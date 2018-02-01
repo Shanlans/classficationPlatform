@@ -32,3 +32,5 @@ def ModelDictCreate(startpath):
         if level > 0 :
             modelDict[dirName.split('\\')[-1]] = fileList
     return modelDict
+
+

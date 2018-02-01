@@ -18,24 +18,25 @@ class Train(object):
     
     def __init__(self,
                  initial,
-                 iteration,
-                 learningRate,
+                 filterSizes,
+                 featureNums,
                  optimizerMethod = 'Adam',                 
                  learningRateDecay = False,
                  learningRateDecayMethod = 'Exponential_decay',
                  learningRateDecayRate = 0.9,
                  regularization = False,
                  regularizationWeight = 0.01,
-                 feedDict = {},
                  reportStep = 50,
                  checkPointStep = 2000,
                  fineTune = False
                  ):
         
         self.__initial = initial
-        self.__trainStep = iteration
+        self.__filterSizes = filterSizes
+        self.__featureNums = featureNums
+        self.__trainStep = self.__initial.trainStep
         self.__optimizerMethod = optimizerMethod
-        self.__learningRate = learningRate
+        self.__learningRate = self.__initial.learningRate
         self.__learningRateDecay = learningRateDecay
         self.__learningRateDecayMethod = learningRateDecayMethod
         self.__learningRateDecayRate = learningRateDecayRate
@@ -46,7 +47,7 @@ class Train(object):
         self.__fineTune = fineTune
         self.__sess = self.__initial.sess         
         self.__coord = tf.train.Coordinator()
-        self.__feedDict = feedDict                
+        self.__feedDict = {}                
         self.__initial.LoadInputData(stage='Train')
         self.__initial.LoadInputData(stage='Validate')
         self.__addForDecay = None
@@ -60,9 +61,8 @@ class Train(object):
             tf.summary.histogram("Image",self.xs)
             tf.summary.histogram("Label",self.ys)
         self.dropout = tf.placeholder(tf.float32,name='Dropout')
-        self.trainphase = tf.placeholder(tf.bool,name='Trainphase')
-                    
-        self.models = models.models(self.xs,[3,3,1,1],[20,40,40,self.__initial.classNum],trainable=True)
+        self.trainphase = tf.placeholder(tf.bool,name='Trainphase')                    
+        self.models = models.models(self.xs,filterSizes,featureNums,trainable=True)
         
               
         

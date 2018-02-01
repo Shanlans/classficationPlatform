@@ -7,6 +7,16 @@ import os
 
 class Input_Data(object): 
     
+    def GetClassNumber(self,datapath):
+        dataBase = os.path.join(datapath,'Train\\')        
+        classList = []        
+        for file in os.listdir(dataBase):
+            name = file.split(sep='_')
+            classList.append(name[0])
+        classList = list(set(classList))
+        classNum = len(classList)
+        return classList,classNum
+    
     def GetFiles(self,fileDir,classes,isShuffle=True,stage='Train'):        
         classNumber=len(classes)       
         fileNameDict = {}

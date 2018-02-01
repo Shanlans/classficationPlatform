@@ -18,8 +18,7 @@ class Init(object):
                  LEARNING_RATE=1e-3,
                  TRAINING_BATCH_SIZE=64,
                  MAX_STEP=1000,
-                 DATA_BASE='',
-                 classes=[]): 
+                 DATA_BASE=''): 
         """Initial main input paramters
         Args:
             TRAIN_SWICH: Turn-on or Turn-off training progress
@@ -44,28 +43,27 @@ class Init(object):
         self.trainBatchSize =   TRAINING_BATCH_SIZE
         self.trainStep      =   MAX_STEP
         self.inputDataDir   =   DATA_BASE        
-        self.classes        =   classes
-        self.dropout        =   0.5
-        
+        self.dropout        =   0.5       
         self.__trainPercent   =   70
         self.__inputData      =   {}
-        self.classNum       =   0
         
-        self.__maxValidateBatchSize = 500
+        self.__maxValidateBatchSize = 200
         self.__train          =   {}
         self.__validate       =   {}
         self.__test           =   {}
         self.imageInfo        =   {'imageInfoGet':False,'imageHeight':0,'imageWidth':0,'imageChannels':0}
         self.imageScale       =   4
+        self.__inp            =   inputs.Input_Data()
         self.sess             =   tf.Session()
         self.xs               =   None
         self.ys               =   None
         
-        local_device_protos = device_lib.list_local_devices()
-        self.gpuList = [x.name for x in local_device_protos if x.device_type == 'GPU']
+        self.__classes,self.classNum = self.__inp.GetClassNumber(self.inputDataDir)
+#        local_device_protos = device_lib.list_local_devices()
+#        self.gpuList = [x.name for x in local_device_protos if x.device_type == 'GPU']
         
 
-        
+         
         
         
     def LoadInputData(self,isShuffle=True,stage='Train'):         
@@ -81,13 +79,13 @@ class Init(object):
         from training dataset by given percentage as the parameter "self.__trainPercent" setting    
         """
         
-        inp = inputs.Input_Data()        
+                
         trainPercent = self.__trainPercent
         dataBase = self.inputDataDir
-        classes = self.classes
+        classes = self.__classes
         if stage is 'Train':
             dataBase = os.path.join(dataBase,'Train\\')
-            data,label = inp.GetFiles(dataBase,classes,isShuffle=isShuffle,stage='Train')
+            data,label = self.__inp.GetFiles(dataBase,classes,isShuffle=isShuffle,stage='Train')
             self.__train['image'] = data
             self.__train['label'] = label
         elif stage is 'Validate':
@@ -96,19 +94,19 @@ class Init(object):
                 print('\nWarning: No validation dataset! Use %s%% training data as validation dataset.\n'%trainPercent)
                 trainData = self.__inputData['trainDataSet']['image']
                 trainLabel = self.__inputData['trainDataSet']['label']
-                trainDataSlice,validateDataSlice=inp.PercentListSlicing(trainData,trainPercent)
-                trainLabelSlice,validateLabelSlice=inp.PercentListSlicing(trainLabel,trainPercent)
+                trainDataSlice,validateDataSlice=self.__inp.PercentListSlicing(trainData,trainPercent)
+                trainLabelSlice,validateLabelSlice=self.__inp.PercentListSlicing(trainLabel,trainPercent)
                 self.__train['image'] = trainDataSlice
                 self.__train['label'] = trainLabelSlice
                 self.__validate['image'] = validateDataSlice
                 self.__validate['label'] = validateLabelSlice
             else:
-                data,label = inp.GetFiles(dataBase,classes,isShuffle=isShuffle,stage='Validate')
+                data,label = self.__inp.GetFiles(dataBase,classes,isShuffle=isShuffle,stage='Validate')
                 self.__validate['image'] = data
                 self.__validate['label'] = label
         elif stage is 'Test':
             dataBase = os.path.join(dataBase,'Test\\')
-            data,label = inp.GetFiles(dataBase,classes,isShuffle=isShuffle,stage='Test')
+            data,label = self.__inp.GetFiles(dataBase,classes,isShuffle=isShuffle,stage='Test')
             self.__test['image'] = data
             self.__test['label'] = label   
         else:
@@ -117,7 +115,6 @@ class Init(object):
         self.__inputData.update(trainDataSet=self.__train)
         self.__inputData.update(valiDataSet=self.__validate)
         self.__inputData.update(testDataSet=self.__test)
-        self.classNum = len(classes)
         
         if self.imageInfo['imageInfoGet'] is False:
             for k,v in self.__inputData.items():
@@ -133,7 +130,6 @@ class Init(object):
             
         
     def PrepareBatch(self,isShuffle=True,stage='Train'):
-        inp = inputs.Input_Data()
         classNum = self.classNum
         imageInfo = [self.imageInfo['imageHeight'],self.imageInfo['imageWidth'],self.imageInfo['imageChannels']]                       
         if stage is 'Train':
@@ -149,9 +145,9 @@ class Init(object):
             numberThread = 1
             isShuffle = False
             if len(label)<self.__maxValidateBatchSize:
-                batchSize = 20#len(label)
+                batchSize = len(label)
             else:
-                batchSize = 20#self.__maxValidateBatchSize               
+                batchSize = self.__maxValidateBatchSize               
             print('\nValidate batch %s ready.\n'%batchSize)
         elif stage is 'Test':
             data = self.__inputData['trainDataSet']['image']
@@ -160,13 +156,13 @@ class Init(object):
             numberThread = 1 
             isShuffle = False
             print('\Test batch %s ready.\n'%batchSize)
-        dataBatch,labelBatch=inp.GetBatch(data,label,classNum,imageInfo[:],batchSize,isShuffle=isShuffle,numberThread=numberThread)
+        dataBatch,labelBatch=self.__inp.GetBatch(data,label,classNum,imageInfo[:],batchSize,isShuffle=isShuffle,numberThread=numberThread)
         
         return dataBatch,labelBatch
         
     def ClossSession(self):
         self.sess.close()
-        print("Tf Session Stop!!")
+        print("Training Stop!!")
         
             
         

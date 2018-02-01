@@ -76,7 +76,7 @@ class models(object):
         if sValue is None:
             sValue = np.ones(depth)
         if bn is None:
-            bn = [True] * depth 
+            bn = [False] * depth 
             
         # Make sure that number of layers is consistent
         assert len(outputChannels) == depth
