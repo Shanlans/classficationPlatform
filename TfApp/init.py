@@ -57,7 +57,6 @@ class Init(object):
         self.sess             =   tf.Session()
         self.xs               =   None
         self.ys               =   None
-        
         self.__classes,self.classNum = self.__inp.GetClassNumber(self.inputDataDir)
 #        local_device_protos = device_lib.list_local_devices()
 #        self.gpuList = [x.name for x in local_device_protos if x.device_type == 'GPU']
@@ -120,7 +119,11 @@ class Init(object):
             for k,v in self.__inputData.items():
                 if 'image' in v.keys():
                     if len(v['image'])>0:
-                        height, width, channels = scipy.ndimage.imread(v['image'][0]).shape
+                        if len(scipy.ndimage.imread(v['image'][0]).shape) == 2:
+                            height, width= scipy.ndimage.imread(v['image'][0]).shape
+                            channels = 1
+                        else:
+                            height, width, channels = scipy.ndimage.imread(v['image'][0]).shape
                         self.imageInfo.update(imageInfoGet = True)
                         self.imageInfo.update(imageHeight = height*self.imageScale)
                         self.imageInfo.update(imageWidth = width*self.imageScale)

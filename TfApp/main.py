@@ -20,17 +20,17 @@ FLAGS = None
 
 
 def main(_):    
-  initial = init.Init(FLAGS.trainSwitch,
-                      FLAGS.babysitting,
-                      FLAGS.learning_rate,
-                      FLAGS.mini_batch_size,
-                      FLAGS.max_steps,
-                      FLAGS.data_dir
-                      )
+    initial = init.Init(FLAGS.trainSwitch,
+                        FLAGS.babysitting,
+                        FLAGS.learning_rate,
+                        FLAGS.mini_batch_size,
+                        FLAGS.max_steps,
+                        FLAGS.data_dir
+                        )
   
-  trainInstance = train.Train(initial,filterSizes=[3,3,1,1],featureNums=[20,40,40,initial.classNum])
-  trainInstance.TrainProcess()
-  initial.ClossSession()
+    trainInstance = train.Train(initial,filterSizes=[3,3,1,1],featureNums=[20,40,40,initial.classNum])
+    trainInstance.TrainProcess()
+    initial.ClossSession()
   
 
 
@@ -48,7 +48,7 @@ if __name__ == '__main__':
       '--data_dir',
       type=str,
       default=os.path.join(os.getenv('DATADIR', 'Database'),
-                           'IR_data'),
+                           'ACF_data'), 
       help='Input data')
 
   FLAGS, unparsed = parser.parse_known_args()
