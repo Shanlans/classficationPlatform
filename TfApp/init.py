@@ -10,7 +10,32 @@ from tensorflow.python.client import device_lib
 
 class Init(object):
     """
-    Initial hyperparamter, processing parameter.Perepare training datasets
+    Class Summary:
+        initialize hyperparameters, processing parameters
+        perepare training datasets
+        
+    Attributes:
+        trainSwitch:
+        babySitting: 
+        learningRate:  
+        trainBatchSize:
+        trainStep:
+        inputDataDir:
+        dropout:   
+        __trainPercent:
+        __inputData:
+        __maxValidateBatchSize:
+        __train: 
+        __validate:
+        __test:  
+        imageInfo: 
+        imageScale:
+        __inp:
+        sess:
+        xs:
+        ys:
+        __classes:
+        classNum:    
     """  
     def __init__(self,
                  TRAIN_SWICH=True,
@@ -19,7 +44,7 @@ class Init(object):
                  TRAINING_BATCH_SIZE=64,
                  MAX_STEP=1000,
                  DATA_BASE=''): 
-        """Initial main input paramters
+        """Initialize main input parameters
         Args:
             TRAIN_SWICH: Turn-on or Turn-off training progress
                         -True, Turn-on

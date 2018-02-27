@@ -12,7 +12,10 @@ class Input_Data(object):
         classList = []        
         for file in os.listdir(dataBase):
             name = file.split(sep='_')
-            classList.append(name[0])
+            if 'desktop.ini' in name:
+                pass
+            else:
+                classList.append(name[0])
         classList = list(set(classList))
         classNum = len(classList)
         return classList,classNum

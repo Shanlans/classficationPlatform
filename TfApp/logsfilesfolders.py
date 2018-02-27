@@ -8,12 +8,28 @@ import tensorflow as tf
 from tensorflow.python.framework import graph_util 
 
 class LogsFilesFolders(object):
+    """Class Summary:
+        create folders for logs('event' files which can be loaded in tensorboard)
+        combine graph and parameters to 'pb' files
+        initialize tensorboard
+        
+        Attributes:
+         folderVersion:version number
+         folderPurpose:the folder is for train, validate or test
+         __DATE:
+         __modelDir:
+         __logDir:    
+         __sess:    
+         modelDict:    
+         mainModelDir:    
+         mainLogDir:    
+    """
     def __init__(self,
                  stage,
                  folderVersion,
                  sess
                  ):
-        
+
         self.folderVersion = folderVersion
         self.folderPurpose = stage
         self.__DATE = time.strftime('%Y-%m-%d-%H-%M',time.localtime(time.time()))
@@ -34,7 +50,7 @@ class LogsFilesFolders(object):
         
                     
     def GeneratePb(self,modelFolder=None,ckptNum=4999,sess=None):  
-    # We retrieve our checkpoint fullpath 
+    # We retrieve our checkpoint fullpath
         if modelFolder is None:
             modelFolder = self.mainModelDir
         
@@ -65,7 +81,7 @@ class LogsFilesFolders(object):
                 inputGraphDef,   
                 outputNode.split(",") # We split on comma for convenience  
             )
-        with tf.gfile.GFile(pbModel, "wb") as f:  
+        with tf.gfile.GFile(pbModel, "wb") as f:
                 f.write(outputGraphDef.SerializeToString())  
         print("%d ops in the final graph." % len(outputGraphDef.node))  
         

@@ -1,0 +1,6 @@
+{"trainSwitch": "True",
+ "babysitting": "True",
+ "max_steps": 100,
+ "learning_rate": 0.01,
+ "mini_batch_size": 16,
+ "data_dir": "IR_data"}
