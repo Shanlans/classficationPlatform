@@ -15,7 +15,30 @@ import evaluation
 
 
 class Train(object):
-    
+    """
+    Class Summary:
+        define NN architecture and train it with training dataset
+        
+    Attribute:
+        __initial:
+        __filterSizes:
+        __featureNums
+        __trainStep
+        __optimizerMethod
+        __learningRate
+        __learningRateDecay
+        __learningRateDecayMethod
+        __learningRateDecayRate
+        __regularization
+        __regularizationWeight
+        __reportStep
+        __checkPointStep
+        __fineTune
+        __sess
+        __coord
+        __feedDict
+        __addForDecay
+    """
     def __init__(self,
                  initial,
                  filterSizes,
