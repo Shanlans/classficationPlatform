@@ -3,30 +3,36 @@
 import os
 
 def MkDir(path):
-    # 引入模块 
-    # 去除首位空格
+    """
+    Args:
+        the path need to be created
+    Returns:
+        creating result
+    """
+    # eliminate first space
     path=path.strip()
-    # 去除尾部 \ 符号
+    # eliminate '\\'
     path=path.rstrip("\\")
  
-    # 判断路径是否存在
-    # 存在     True
-    # 不存在   False
+    # true is exists
     isExists=os.path.exists(path)
  
-    # 判断结果
     if not isExists:
-        # 如果不存在则创建目录
-        # 创建目录操作函数
         os.makedirs(path)
         return True
-    else:
-        # 如果目录存在则不创建，并提示目录已存在        
+    else:  
         return False
     
     
 def ModelDictCreate(startpath):
+    """
+    Args:
+        input a path
+    Returns:
+        folders contain model 
+    """
     modelDict = {}
+    # traverse the files and subdirs in the path
     for dirName, subdirList, fileList in os.walk(startpath,topdown=False):
         level = dirName.count(os.sep)
         if level > 0 :

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-#Created on 10/1/2018 by Shen Shanlan
+# Created on 10/1/2018 by Shen Shanlan
 
 import os
 import time
@@ -8,21 +8,22 @@ import tensorflow as tf
 from tensorflow.python.framework import graph_util 
 
 class LogsFilesFolders(object):
-    """Class Summary:
+    """
+    Class Summary:
         create folders for logs('event' files which can be loaded in tensorboard)
         combine graph and parameters to 'pb' files
         initialize tensorboard
         
-        Attributes:
-         folderVersion:version number
-         folderPurpose:the folder is for train, validate or test
-         __DATE:
-         __modelDir:
-         __logDir:    
-         __sess:    
-         modelDict:    
-         mainModelDir:    
-         mainLogDir:    
+    Attributes:
+        folderVersion:version number
+        folderPurpose:the folder is for train, validate or test
+        __DATE:used to specify every training or testing
+        __modelDir:model path
+        __logDir:log path
+        __sess:session
+        modelDict:
+        mainModelDir:    
+        mainLogDir:    
     """
     def __init__(self,
                  stage,
@@ -45,12 +46,12 @@ class LogsFilesFolders(object):
             util.MkDir(os.path.join(self.mainLogDir,'Validate'))
         elif self.folderPurpose is "Test":
             util.MkDir(os.path.join(self.mainLogDir,'Test'))
-            # Get the existed model list on the specified data and version, if Test 
+            # Get the existed model list on the specified data and version for testing
             self.modelDict = util.ModelDictCreate(os.path.join(self.__modelDir,self.folderVersion)) 
         
                     
     def GeneratePb(self,modelFolder=None,ckptNum=4999,sess=None):  
-    # We retrieve our checkpoint fullpath
+        # retrieve our checkpoint fullpath
         if modelFolder is None:
             modelFolder = self.mainModelDir
         

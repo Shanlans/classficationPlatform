@@ -8,16 +8,29 @@ import numpy as np
 
 class Layers:
     """
-    A Class to facilitate network creation in TensorFlow.
-    Methods: conv2d, deconv2d, cflatten, maxpool, avgpool, res_layer, noisy_and, batch_norm
+    Class Summary:
+        A Class to facilitate network creation in TensorFlow by:
+        conv2d,
+        deconv2d, 
+        cflatten, 
+        maxpool, 
+        avgpool, 
+        res_layer, 
+        noisy_and, 
+        batch_norm
     """
     def __init__(self, x):
         """
-        Initialize model Layers.
-        .input = numpy array
-        .count = dictionary to keep count of number of certain types of layers for naming purposes
+        Args:
+            input data(numpy array)
+        Return:
+            none
+        Description:
+            Initialize layers
         """
-        self.input = x  # initialize input tensor
+        # initialize input tensor
+        self.input = x
+        # the dictionary to count the number of certain types of layers for naming purposes
         self.count = {'conv': 0, 'deconv': 0, 'fc': 0, 'flat': 0, 'mp': 0, 'up': 0, 'ap': 0, 'rn': 0}
 
     def Conv2D(self, filterSize, outputChannel, stride=1, padding='SAME', bn=True, activationFn=tf.nn.relu, bValue=0.0, sValue=1.0, trainable=True):
@@ -235,8 +248,9 @@ class Layers:
         elif lens == 3:
             axises = [0,1,2]                
         batchMean, batchVar = tf.nn.moments(inputs, axises, name='moments')
+        # 滑动窗口来进行加权平均
         ema = tf.train.ExponentialMovingAverage(decay=0.5)
-        #滑动窗口来进行加权平均
+
         def MeanVarWithUpdate():
             emaApplyOp = ema.apply([batchMean, batchVar])
             with tf.control_dependencies([emaApplyOp]):

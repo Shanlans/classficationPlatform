@@ -3,6 +3,7 @@
 
 
 import os
+import sys
 import inputs
 import scipy.ndimage
 import tensorflow as tf
@@ -91,19 +92,18 @@ class Init(object):
         
         
     def LoadInputData(self,isShuffle=True,stage='Train'):         
-        """load input data
-        Load the training, validation and test data set from the path where the user gives or default setting
+        """
+        Load the training, validation and test data set from the specific path
         Args:
             isShuffle: Shuffle dataset or not, True is shuffle
             stage: Genarate the batch for 'Train','Test' or 'Validate'
-            Returns:
+        Returns:
     
-                Rasies:
+        Rasies:
         If No validation dataset, this function will randomly generate the validation dataset
         from training dataset by given percentage as the parameter "self.__trainPercent" setting    
         """
-        
-                
+   
         trainPercent = self.__trainPercent
         dataBase = self.inputDataDir
         classes = self.__classes
@@ -112,18 +112,24 @@ class Init(object):
             data,label = self.__inp.GetFiles(dataBase,classes,isShuffle=isShuffle,stage='Train')
             self.__train['image'] = data
             self.__train['label'] = label
-        elif stage is 'Validate':
+            
+        if stage is 'Validate':
             dataBase = os.path.join(dataBase,'Validate\\')
             if not os.listdir(dataBase):
                 print('\nWarning: No validation dataset! Use %s%% training data as validation dataset.\n'%trainPercent)
-                trainData = self.__inputData['trainDataSet']['image']
-                trainLabel = self.__inputData['trainDataSet']['label']
-                trainDataSlice,validateDataSlice=self.__inp.PercentListSlicing(trainData,trainPercent)
-                trainLabelSlice,validateLabelSlice=self.__inp.PercentListSlicing(trainLabel,trainPercent)
-                self.__train['image'] = trainDataSlice
-                self.__train['label'] = trainLabelSlice
-                self.__validate['image'] = validateDataSlice
-                self.__validate['label'] = validateLabelSlice
+                if 'trainDataSet' not in self.__inputData.keys():
+                    print('\n--------------------------------------------------------\n')
+                    print('Warning: Validation stage should follow with Training stage\n')
+                    sys.exit()
+                elif 'trainDataSet' in self.__inputData.keys():
+                    trainData = self.__inputData['trainDataSet']['image']
+                    trainLabel = self.__inputData['trainDataSet']['label']
+                    trainDataSlice,validateDataSlice=self.__inp.PercentListSlicing(trainData,trainPercent)
+                    trainLabelSlice,validateLabelSlice=self.__inp.PercentListSlicing(trainLabel,trainPercent)
+                    self.__train['image'] = trainDataSlice
+                    self.__train['label'] = trainLabelSlice
+                    self.__validate['image'] = validateDataSlice
+                    self.__validate['label'] = validateLabelSlice
             else:
                 data,label = self.__inp.GetFiles(dataBase,classes,isShuffle=isShuffle,stage='Validate')
                 self.__validate['image'] = data
@@ -140,6 +146,8 @@ class Init(object):
         self.__inputData.update(valiDataSet=self.__validate)
         self.__inputData.update(testDataSet=self.__test)
         
+        # input data {1:traindataset{image:,label:}, 2:validatedataset{image:,label:}}
+        # get all image infomation in one list
         if self.imageInfo['imageInfoGet'] is False:
             for k,v in self.__inputData.items():
                 if 'image' in v.keys():
