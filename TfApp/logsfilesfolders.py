@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-#Created on 10/1/2018 by Shen Shanlan
+# Created on 10/1/2018 by Shen Shanlan
 
 import os
 import time
@@ -8,27 +8,35 @@ import tensorflow as tf
 from tensorflow.python.framework import graph_util 
 
 class LogsFilesFolders(object):
-    """Class Summary:
+    """
+    Class Summary:
         create folders for logs('event' files which can be loaded in tensorboard)
         combine graph and parameters to 'pb' files
         initialize tensorboard
         
-        Attributes:
-         folderVersion:version number
-         folderPurpose:the folder is for train, validate or test
-         __DATE:
-         __modelDir:
-         __logDir:    
-         __sess:    
-         modelDict:    
-         mainModelDir:    
-         mainLogDir:    
+    Attributes:
+        folderVersion:version number
+        folderPurpose:the folder is for train, validate or test
+        __DATE:used to specify every training or testing
+        __modelDir:model path
+        __logDir:log path
+        __sess:session
+        modelDict:
+        mainModelDir:    
+        mainLogDir:    
     """
     def __init__(self,
                  stage,
                  folderVersion,
                  sess
                  ):
+        """Initialization
+        Args:
+            stage:
+            folderVersion:
+            sess:session
+                
+        """
 
         self.folderVersion = folderVersion
         self.folderPurpose = stage
@@ -45,12 +53,19 @@ class LogsFilesFolders(object):
             util.MkDir(os.path.join(self.mainLogDir,'Validate'))
         elif self.folderPurpose is "Test":
             util.MkDir(os.path.join(self.mainLogDir,'Test'))
-            # Get the existed model list on the specified data and version, if Test 
+            # Get the existed model list on the specified data and version for testing
             self.modelDict = util.ModelDictCreate(os.path.join(self.__modelDir,self.folderVersion)) 
         
                     
-    def GeneratePb(self,modelFolder=None,ckptNum=4999,sess=None):  
-    # We retrieve our checkpoint fullpath
+    def GeneratePb(self,modelFolder=None,ckptNum=4999,sess=None):
+        """Generate Pb model by check point file(parameters) and meta file(graph)
+        Args:
+            modelFolder:
+            ckptNum:the number of checkpoint which represent the number of iteration
+            sess:session
+                
+        """
+        # retrieve our checkpoint fullpath
         if modelFolder is None:
             modelFolder = self.mainModelDir
         
@@ -86,6 +101,13 @@ class LogsFilesFolders(object):
         print("%d ops in the final graph." % len(outputGraphDef.node))  
         
     def TbInital(self,logsFolder=None,sess=None):
+        """Initialize tensorboard
+        Args:
+            logsFolder:the folder to save log file
+            sess:session
+            
+        Return:the list of merged information, train log and validate log
+        """
         if self.folderPurpose is 'Train':
             if logsFolder is None:
                 logsFolder = self.mainLogDir

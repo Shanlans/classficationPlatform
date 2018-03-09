@@ -8,28 +8,42 @@ import numpy as np
 
 class Layers:
     """
-    A Class to facilitate network creation in TensorFlow.
-    Methods: conv2d, deconv2d, cflatten, maxpool, avgpool, res_layer, noisy_and, batch_norm
+    Class Summary:
+        A Class to facilitate network creation in TensorFlow by:
+        conv2d,
+        deconv2d, 
+        flatten, 
+        maxpool, 
+        avgpool, 
+        res_layer, 
+        noisy_and, 
+        batch_norm
     """
     def __init__(self, x):
         """
-        Initialize model Layers.
-        .input = numpy array
-        .count = dictionary to keep count of number of certain types of layers for naming purposes
+        Args:
+            input data(numpy array)
+        Return:
+            none
+        Description:
+            Initialize layers
         """
-        self.input = x  # initialize input tensor
+        # initialize input tensor
+        self.input = x
+        # the dictionary to count the number of certain types of layers for naming purposes
         self.count = {'conv': 0, 'deconv': 0, 'fc': 0, 'flat': 0, 'mp': 0, 'up': 0, 'ap': 0, 'rn': 0}
 
     def Conv2D(self, filterSize, outputChannel, stride=1, padding='SAME', bn=True, activationFn=tf.nn.relu, bValue=0.0, sValue=1.0, trainable=True):
         """
         2D Convolutional Layer.
-        :param filterSize: int. assumes square filter
-        :param outputChannels: int
-        :param stride: int
+        :param filterSize: (int)assumes square filter
+        :param outputChannels:(int)
+        :param stride:(int)
         :param padding: 'VALID' or 'SAME'
-        :param activationFn: tf.nn function
-        :param bValue: float
-        :param sValue: float
+        :param bn:use batch normalization or not
+        :param activationFn:
+        :param bValue: (float)
+        :param sValue: (float)
         """
         self.count['conv'] += 1
         scope = 'conv_' + str(self.count['conv'])
@@ -226,6 +240,10 @@ class Layers:
         self.PrintLog(scope + ' output: ' + str(self.input.get_shape()))        
         
     def BatchNorm(self,inputs,trainable=True):
+        """
+        Batch Normalization
+        :param trainable:update beta and gamma when training and fix beta and gamma when testing
+        """
         beta = self.ConstVariable(name='beta', shape=[inputs.get_shape()[-1]], value=0.0, trainable=trainable)
         gamma = self.ConstVariable(name='gamma', shape=[inputs.get_shape()[-1]], value=1.0, trainable=trainable)
         lens = len(inputs.get_shape())-1
@@ -235,8 +253,9 @@ class Layers:
         elif lens == 3:
             axises = [0,1,2]                
         batchMean, batchVar = tf.nn.moments(inputs, axises, name='moments')
+        # 滑动窗口来进行加权平均
         ema = tf.train.ExponentialMovingAverage(decay=0.5)
-        #滑动窗口来进行加权平均
+
         def MeanVarWithUpdate():
             emaApplyOp = ema.apply([batchMean, batchVar])
             with tf.control_dependencies([emaApplyOp]):
@@ -258,7 +277,9 @@ class Layers:
     
     @staticmethod
     def PrintLog(message):
-        """ Writes a message to terminal screen and logging file, if applicable"""
+        """ 
+        Writes a message to terminal screen and logging file if applicable
+        """
         print(message)
         logging.info(message)        
         

@@ -53,6 +53,7 @@ class Train(object):
                  checkPointStep = 2000,
                  fineTune = False
                  ):
+        """Initialization"""
         
         self.__initial = initial
         self.__filterSizes = filterSizes
@@ -91,6 +92,7 @@ class Train(object):
         
     
     def __LossCal(self):
+        """Calculate the loss"""
         regularization = self.__regularization
         regularizationWeight = self.__regularizationWeight 
         
@@ -105,15 +107,18 @@ class Train(object):
             tf.summary.scalar('CrossEntropy',self.__lossOps)
     
     def __AccCal(self):
+        """Calculate the accuracy"""
         with tf.variable_scope('Acc'):
             self.__accOps = evaluation.AccuracyCal(self.ys,self.__predicts)
             tf.summary.scalar('accuracy', self.__accOps)
     
     def __ConfusionMatrix(self):
+        """Calculate the confusion matrix"""
         with tf.variable_scope('ConfusionMatrix'):
             self.__cMatOps= evaluation.ConfusionMatrix(self.ys,self.__predicts,self.__initial.classNum)
     
     def __LearningRateDecay(self):  
+        """Decay method of learning rate"""
         if self.__learningRateDecay:
             with tf.variable_scope('LRDecay'):
                 initialStep = tf.get_variable('DecayStep',dtype=tf.int32,initializer=tf.constant(0),trainable=False)     
@@ -125,7 +130,8 @@ class Train(object):
             self.__addForDecay = initialStep.assign_add(1)
             
         
-    def __Optimizer(self): 
+    def __Optimizer(self):
+        """Optimizer"""
         if self.__learningRateDecay:
             with tf.control_dependencies([self.__addForDecay]):      
                 if self.__optimizerMethod is 'Adam':
@@ -138,7 +144,8 @@ class Train(object):
     
 
         
-    def __DataFeed(self,dataOps,labelOps,stage='Train'): 
+    def __DataFeed(self,dataOps,labelOps,stage='Train'):
+        """Feed data"""
         datas,lables = self.__sess.run([dataOps,labelOps])      
         self.__feedDict[self.xs] = datas
         self.__feedDict[self.ys] = lables 
@@ -151,6 +158,7 @@ class Train(object):
     
             
     def __Backward(self,step):
+        """Train stage operation"""
         self.__DataFeed(self.__trainDataOps,self.__trainLabelOps,stage='Train')                    
         _,loss,acc,p = self.__sess.run([self.__trainOps,self.__lossOps,self.__accOps,self.__predicts],feed_dict=self.__feedDict)
         if step % self.__reportStep == 0:            
@@ -162,7 +170,8 @@ class Train(object):
             self.__saver.save(self.__sess,self.folder.mainModelDir+'\\model', global_step=step)
             
             
-    def __Forward(self,step):       
+    def __Forward(self,step):  
+        """Validate stage operation"""
         if step % self.__reportStep == 0:
             self.__DataFeed(self.__validateDataops,self.__validateLabelOps,stage='Validate')
             loss,acc,cMat = self.__sess.run([self.__lossOps,self.__accOps,self.__cMatOps],feed_dict=self.__feedDict)            
@@ -174,11 +183,13 @@ class Train(object):
 
      
     def __BatchPrepare(self):
+        """Prepare batch"""
         with tf.variable_scope('BatchGen'):
             self.__trainDataOps,self.__trainLabelOps=self.__initial.PrepareBatch(stage='Train')
             self.__validateDataops,self.__validateLabelOps = self.__initial.PrepareBatch(stage='Validate') 
         
     def __SetUpGraphic(self):
+        """Setup"""
         self.__predicts = self.models.get_output()
         self.__LossCal()
         self.__AccCal()
@@ -187,18 +198,16 @@ class Train(object):
         self.__LearningRateDecay()
         self.__saver = tf.train.Saver()
         self.tb = self.folder.TbInital()
+        print('\n--------------------------------------------------------\n')   
         slim.model_analyzer.analyze_vars(tf.trainable_variables(), print_info=True)
         
     def __InitialParameter(self):
+        """Initialize parameter"""
         self.__threads = tf.train.start_queue_runners(sess=self.__sess, coord=self.__coord)   
         self.__sess.run(tf.global_variables_initializer())
 
     def TrainProcess(self):       
-        '''
-           Args:
-           Return:
-            
-        '''
+        """Train"""
         self.__BatchPrepare()
         self.__SetUpGraphic()
         self.__InitialParameter()

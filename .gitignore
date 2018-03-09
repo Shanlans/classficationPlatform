@@ -105,3 +105,6 @@ TfApp/Logs
 TfApp/model
 TFApp/windows
 TFApp/__pycache__
+TFApp/test.py
+TFApp/test2.py
+TFApp/Classification Platform.pdf

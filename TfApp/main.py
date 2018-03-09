@@ -31,7 +31,7 @@ def main(_):
     initial.ClossSession()
 
 if __name__ == '__main__':
-#  read para from console
+###  read para from console
 
 #  parser = argparse.ArgumentParser()
 #  parser.add_argument('--trainSwitch',type=bool,default=True,help='Switch on/off training')
@@ -52,7 +52,7 @@ if __name__ == '__main__':
 #  FLAGS, unparsed = parser.parse_known_args()
 #tf.app.run(main=main, argv=[sys.argv[0]] + unparsed)
 
-#  read para from txt
+###  read para from txt
 
   with open('para.txt', encoding='utf-8') as f:
       para = json.load(f)
