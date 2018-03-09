@@ -92,8 +92,7 @@ class Init(object):
         
         
     def LoadInputData(self,isShuffle=True,stage='Train'):         
-        """
-        Load the training, validation and test data set from the specific path
+        """Load the training, validation and test data set from the specific path
         Args:
             isShuffle: Shuffle dataset or not, True is shuffle
             stage: Genarate the batch for 'Train','Test' or 'Validate'
@@ -166,6 +165,15 @@ class Init(object):
             
         
     def PrepareBatch(self,isShuffle=True,stage='Train'):
+        """Prepare mini batch of input data
+        Args:
+            isShuffle:whether shuffle the data randomly
+            stage:`Train` and `Test`
+        
+        Returns:
+            label and data of mini batch
+    
+    """
         classNum = self.classNum
         imageInfo = [self.imageInfo['imageHeight'],self.imageInfo['imageWidth'],self.imageInfo['imageChannels']]                       
         if stage is 'Train':

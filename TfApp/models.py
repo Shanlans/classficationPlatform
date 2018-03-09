@@ -18,20 +18,20 @@ class models(object):
                  activationFn=None,
                  bValue=None
                  ):
-        '''
-        Shortcut for creating a 2D Convolutional Neural Network in one line
-        
+        """Shortcut for creating a 2D Convolutional Neural Network in one line
         Stacks multiple conv2d layers, with arguments for each layer defined in a list.        
         If an argument is left as None, then the conv2d defaults are kept
-        :param filterSizes: int. assumes square filter
-        :param outputChannels: int
-        :param stride: int
-        :param padding: 'VALID' or 'SAME'
-        :param activationFn: tf.nn function
-        :param bValue: float
-        :param sValue: float
-        :param trainable: train or validation
-        '''  
+        
+        Args:
+            filterSizes: int. assumes square filter
+            outputChannels: int
+            stride: int
+            padding: 'VALID' or 'SAME'
+            activationFn: tf.nn function
+            bValue: float
+            sValue: float
+            trainable: train or validation
+        """  
         
         
         self.x = x
@@ -50,6 +50,10 @@ class models(object):
     
     
     def _Network(self,x):
+        """Define architecture of network
+        Args:
+            x:input
+        """
         self.layers = baseLayer.Layers(x)
         filterSizes = self.__filterSizes
         outputChannels = self.__outputChannels
@@ -104,6 +108,6 @@ class models(object):
                 self.layers.MaxPool()
                 
     def get_output(self):
-        
+        """Get output"""
         predicts = tf.nn.softmax(self.layers.get_output())
         return predicts

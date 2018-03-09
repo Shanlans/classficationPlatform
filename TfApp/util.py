@@ -3,7 +3,7 @@
 import os
 
 def MkDir(path):
-    """
+    """Create path
     Args:
         the path need to be created
     Returns:
@@ -25,7 +25,7 @@ def MkDir(path):
     
     
 def ModelDictCreate(startpath):
-    """
+    """Find models
     Args:
         input a path
     Returns:

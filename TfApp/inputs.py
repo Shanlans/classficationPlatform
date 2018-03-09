@@ -8,12 +8,13 @@ import os
 class Input_Data(object): 
     
     def GetClassNumber(self,datapath):
-        '''
+        """get the number of class
         Args:
-            the path where dataset was saved
+            datapath:the path where dataset was saved
         Return:
-            the number of class of dataset
-        '''
+            classList:the list of class names
+            classNum:the number of class of dataset
+        """
         dataBase = os.path.join(datapath,'Train\\')        
         classList = []        
         for file in os.listdir(dataBase):
@@ -28,7 +29,16 @@ class Input_Data(object):
         classNum = len(classList)
         return classList,classNum
     
-    def GetFiles(self,fileDir,classes,isShuffle=True,stage='Train'):        
+    def GetFiles(self,fileDir,classes,isShuffle=True,stage='Train'):
+        """get data(image) from the given path
+        Args:
+            fileDir:the path where dataset was saved
+            classes:the list of class names
+            isShuffle:Shuffle data or not, True is shuffle
+            stage:
+        Return:
+            the number of class of dataset
+        """
         classNumber=len(classes)       
         fileNameDict = {}
         fileLabelDict = {}
@@ -75,21 +85,21 @@ class Input_Data(object):
 
 
     def GetBatch(self,image,label,classNum,imageInfo,batchSize,isShuffle=True,numberThread=2000,capacity=5000):
-        '''
+        """
         Args:
             image: list type
             label: list type
             classNum: Classification class number
             imageInfo: A list [imageHight,imageWidth,imageChannels]
             batchSize: batch size
-            isShuffle: True, shuffle batch;False, no shuffle batch
+            isShuffle: Shuffle batch data or not, True is shuffle
             capacity: the maximum elements in queue
             numberThread: if 1, no shuffle, if >1 shuffle number
             
         Return:
-            image batch: 4D tensor [batch_size, image_W, image_H, image_Channel],dtype=tf.float32
+            image batch: 4D tensor [batch_size, image_W, image_H, image_Channel], dtype=tf.float32
             label_batch: 1D tensor [batch_size], dtype=tf.float32
-        '''
+        """
         imageHeight,imageWidth,imageChannels = imageInfo
         label=tf.one_hot(label,classNum,1,0,-1,dtype=tf.int32)
         image = tf.cast(image,tf.string)
@@ -114,13 +124,13 @@ class Input_Data(object):
         
         
     def PercentListSlicing(self,l,p):
-        '''
+        """
         Args:
-            input list
-            percentage
+            l:input list
+            p:percentage
         Return:
             two sublists after slicing
-        '''
+        """
         percentage = float(p)/100.0
         theList = l[:int(len(l)*percentage)]
         anotherList = l[int(len(l)*percentage):]

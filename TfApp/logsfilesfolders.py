@@ -30,6 +30,13 @@ class LogsFilesFolders(object):
                  folderVersion,
                  sess
                  ):
+        """Initialization
+        Args:
+            stage:
+            folderVersion:
+            sess:session
+                
+        """
 
         self.folderVersion = folderVersion
         self.folderPurpose = stage
@@ -50,7 +57,14 @@ class LogsFilesFolders(object):
             self.modelDict = util.ModelDictCreate(os.path.join(self.__modelDir,self.folderVersion)) 
         
                     
-    def GeneratePb(self,modelFolder=None,ckptNum=4999,sess=None):  
+    def GeneratePb(self,modelFolder=None,ckptNum=4999,sess=None):
+        """Generate Pb model by check point file(parameters) and meta file(graph)
+        Args:
+            modelFolder:
+            ckptNum:the number of checkpoint which represent the number of iteration
+            sess:session
+                
+        """
         # retrieve our checkpoint fullpath
         if modelFolder is None:
             modelFolder = self.mainModelDir
@@ -87,6 +101,13 @@ class LogsFilesFolders(object):
         print("%d ops in the final graph." % len(outputGraphDef.node))  
         
     def TbInital(self,logsFolder=None,sess=None):
+        """Initialize tensorboard
+        Args:
+            logsFolder:the folder to save log file
+            sess:session
+            
+        Return:the list of merged information, train log and validate log
+        """
         if self.folderPurpose is 'Train':
             if logsFolder is None:
                 logsFolder = self.mainLogDir

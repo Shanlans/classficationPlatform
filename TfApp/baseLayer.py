@@ -12,7 +12,7 @@ class Layers:
         A Class to facilitate network creation in TensorFlow by:
         conv2d,
         deconv2d, 
-        cflatten, 
+        flatten, 
         maxpool, 
         avgpool, 
         res_layer, 
@@ -36,13 +36,14 @@ class Layers:
     def Conv2D(self, filterSize, outputChannel, stride=1, padding='SAME', bn=True, activationFn=tf.nn.relu, bValue=0.0, sValue=1.0, trainable=True):
         """
         2D Convolutional Layer.
-        :param filterSize: int. assumes square filter
-        :param outputChannels: int
-        :param stride: int
+        :param filterSize: (int)assumes square filter
+        :param outputChannels:(int)
+        :param stride:(int)
         :param padding: 'VALID' or 'SAME'
-        :param activationFn: tf.nn function
-        :param bValue: float
-        :param sValue: float
+        :param bn:use batch normalization or not
+        :param activationFn:
+        :param bValue: (float)
+        :param sValue: (float)
         """
         self.count['conv'] += 1
         scope = 'conv_' + str(self.count['conv'])
@@ -239,6 +240,10 @@ class Layers:
         self.PrintLog(scope + ' output: ' + str(self.input.get_shape()))        
         
     def BatchNorm(self,inputs,trainable=True):
+        """
+        Batch Normalization
+        :param trainable:update beta and gamma when training and fix beta and gamma when testing
+        """
         beta = self.ConstVariable(name='beta', shape=[inputs.get_shape()[-1]], value=0.0, trainable=trainable)
         gamma = self.ConstVariable(name='gamma', shape=[inputs.get_shape()[-1]], value=1.0, trainable=trainable)
         lens = len(inputs.get_shape())-1
@@ -272,7 +277,9 @@ class Layers:
     
     @staticmethod
     def PrintLog(message):
-        """ Writes a message to terminal screen and logging file, if applicable"""
+        """ 
+        Writes a message to terminal screen and logging file if applicable
+        """
         print(message)
         logging.info(message)        
         
