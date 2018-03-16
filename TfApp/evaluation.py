@@ -39,3 +39,4 @@ def ConfusionMatrix(labels,predicts,classNumber):
     """
     c = tf.confusion_matrix(tf.argmax(labels,1),tf.argmax(predicts,1),classNumber)
     return c
+

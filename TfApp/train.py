@@ -87,9 +87,6 @@ class Train(object):
         self.dropout = tf.placeholder(tf.float32,name='Dropout')
         self.trainphase = tf.placeholder(tf.bool,name='Trainphase')                    
         self.models = models.models(self.xs,filterSizes,featureNums,trainable=True)
-        
-              
-        
     
     def __LossCal(self):
         """Calculate the loss"""
@@ -105,12 +102,14 @@ class Train(object):
             else:
                 regularizationVariable = None
             tf.summary.scalar('CrossEntropy',self.__lossOps)
+            return self.__lossOps
     
     def __AccCal(self):
         """Calculate the accuracy"""
         with tf.variable_scope('Acc'):
             self.__accOps = evaluation.AccuracyCal(self.ys,self.__predicts)
             tf.summary.scalar('accuracy', self.__accOps)
+            return self.__accOps
     
     def __ConfusionMatrix(self):
         """Calculate the confusion matrix"""
@@ -131,7 +130,7 @@ class Train(object):
             
         
     def __Optimizer(self):
-        """Optimizer"""
+        """Choose Optimizer"""
         if self.__learningRateDecay:
             with tf.control_dependencies([self.__addForDecay]):      
                 if self.__optimizerMethod is 'Adam':
@@ -168,7 +167,7 @@ class Train(object):
             self.tb[1].add_summary(summary, step)
         if step % self.__checkPointStep == 0:
             self.__saver.save(self.__sess,self.folder.mainModelDir+'\\model', global_step=step)
-            
+        return loss, acc
             
     def __Forward(self,step):  
         """Validate stage operation"""
@@ -201,10 +200,13 @@ class Train(object):
         print('\n--------------------------------------------------------\n')   
         slim.model_analyzer.analyze_vars(tf.trainable_variables(), print_info=True)
         
+        
     def __InitialParameter(self):
         """Initialize parameter"""
         self.__threads = tf.train.start_queue_runners(sess=self.__sess, coord=self.__coord)   
         self.__sess.run(tf.global_variables_initializer())
+
+    
 
     def TrainProcess(self):       
         """Train"""
@@ -217,7 +219,7 @@ class Train(object):
             for step in np.arange(self.__trainStep):
                 if self.__coord.should_stop():
                     break              
-                self.__Backward(step)                 
+                loss, acc = self.__Backward(step)                 
                 self.__Forward(step)
                                    
         except tf.errors.OutOfRangeError:
@@ -225,7 +227,9 @@ class Train(object):
         finally:
             self.__coord.request_stop()
             
-        self.__coord.join(self.__threads) 
+        self.__coord.join(self.__threads)
+        
+        return loss, acc
            
                 
                 
