@@ -17,9 +17,9 @@ import train
 FLAGS = None
 
 
-def main(_):      
-    initial = init.Init(trainSwitch,
-                        babysitting,
+def main():      
+    initial = init.Init(para["trainSwitch"],
+                        para["babysitting"],
                         para["learning_rate"],
                         para["mini_batch_size"],
                         para["max_steps"],
@@ -29,6 +29,74 @@ def main(_):
     trainInstance = train.Train(initial,filterSizes=[3,3,1,1],featureNums=[20,40,40,initial.classNum])
     trainInstance.TrainProcess()
     initial.ClossSession()
+
+def singleTrain(trainSwitch, babySitting, learningRate, batchSize, maxSteps, dataPath):
+    """Train for one time"""
+    initial = init.Init(trainSwitch,
+                        babySitting,
+                        learningRate,
+                        batchSize,
+                        maxSteps,
+                        os.path.join(os.getenv('DATADIR', 'Database'), dataPath)
+                        )
+    trainInstance = train.Train(initial,filterSizes=[3,3,1,1],featureNums=[20,40,40,initial.classNum])
+    trainInstance.TrainProcess()
+    initial.ClossSession()
+    
+def multiTrain():
+    with open('para.txt', encoding='utf-8') as f:
+        """Train for several times according to the parameter file"""
+        paras = json.load(f)
+        paraNum = len(paras)
+        
+        initial = init.Init(paras[0]["trainSwitch"],
+                            paras[0]["babysitting"],
+                            paras[0]["learning_rate"],
+                            paras[0]["mini_batch_size"],
+                            paras[0]["max_steps"],
+                            os.path.join(os.getenv('DATADIR', 'Database'),paras[0]["data_dir"])
+                            )
+#        trainInstance = train.Train(initial,
+#                                    filterSizes=[3,3,1,1],
+#                                    featureNums=[20,40,40,initial.classNum]
+#                                    )
+        
+        lossList = []
+        accList = []
+        
+        for trainIndex in range(paraNum):
+            print('\n--------------------------------------------------------\n')
+            print('Multi-Train-Stage-',trainIndex)
+            print('\n--------------------------------------------------------\n')
+            
+            initial.trainSwitch = paras[trainIndex]["trainSwitch"]
+            initial.babySitting = paras[trainIndex]["babysitting"]
+            initial.learningRate = paras[trainIndex]["learning_rate"]
+            initial.trainBatchSize = paras[trainIndex]["mini_batch_size"]
+            initial.trainStep = paras[trainIndex]["max_steps"]
+            initial.inputDataDir = os.path.join(os.getenv('DATADIR', 'Database'),paras[trainIndex]["data_dir"])
+
+            trainInstance = train.Train(initial,
+                                    filterSizes=[3,3,1,1],
+                                    featureNums=[20,40,40,initial.classNum]
+                                    )
+
+            loss, acc = trainInstance.TrainProcess()
+            lossList.append(loss)
+            accList.append(acc)
+            
+            tf.reset_default_graph()
+            initial.ClossSession()
+            initial.sess = tf.Session()
+#            trainInstance.updatemodel()      
+
+        initial.ClossSession()
+        print('\n--------------------------------------------------------\n')
+        print('Training loss:\n')
+        print(lossList)
+        print('\nTraining accuracy:\n')
+        print(accList)
+    
 
 if __name__ == '__main__':
 ###  read para from console
@@ -56,12 +124,4 @@ if __name__ == '__main__':
 
   with open('para.txt', encoding='utf-8') as f:
       para = json.load(f)
-  if para["trainSwitch"] == "True":
-      trainSwitch = True
-  else:
-      trainSwitch = False
-  if para["babysitting"] == "True":
-      babysitting = True
-  else:
-      babysitting = False 
   tf.app.run(main=main)
